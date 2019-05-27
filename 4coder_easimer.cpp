@@ -65,11 +65,17 @@ struct easi_project {
 };
 
 easi_project* proj_cache = nullptr;
+static char home_path[1024];
+static char proj_path[1024];
 
 internal void easi_load_proj(Application_Links *app, Partition *scratch, Heap *heap,
                              View_Summary *view, Lister_State *state,
                              String text_field, void *user_data, bool32 activated_by_mouse){
     easi_project* proj = (easi_project*)user_data;
+    
+    if(!proj) {
+        return;
+    }
     
     save_all_dirty_buffers(app);
     directory_set_hot(app, proj->path, proj->path_len);
@@ -87,10 +93,10 @@ CUSTOM_DOC("[EASI] Lists projects")
 {
     DIR* dir;
     dirent* ent;
-    dir = opendir("/home/easimer/projects/");
+    dir = opendir(proj_path);
     
     if(!dir) {
-        print_message(app, "Failed to open /home/easimer/projects!\n", 0);
+        print_message(app, "Failed to open project directory!\n", 0);
         return;
     }
     
@@ -104,7 +110,7 @@ CUSTOM_DOC("[EASI] Lists projects")
         if(ent->d_type == DT_DIR) {
             char abs_path[1024];
             // TODO(easimer): secure this
-            snprintf(abs_path, 1024, "%s/%s/", "/home/easimer/projects/", ent->d_name);
+            snprintf(abs_path, 1024, "%s/%s/", proj_path, ent->d_name);
             if(is_4coder_project(abs_path)) {
                 project_count++;
             }
@@ -120,7 +126,7 @@ CUSTOM_DOC("[EASI] Lists projects")
         if(ent->d_type == DT_DIR) {
             char abs_path[1024];
             // TODO(easimer): secure this
-            snprintf(abs_path, 1024, "%s/%s/", "/home/easimer/projects/", ent->d_name);
+            snprintf(abs_path, 1024, "%s/%s/", proj_path, ent->d_name);
             int type = is_4coder_project(abs_path);
             if(type != PROJ_NOT) {
                 projects[idx].path_len = strlen(abs_path);
@@ -170,6 +176,12 @@ extern "C" GET_BINDING_DATA(get_bindings)
 {
     Bind_Helper context_actual = begin_bind_helper(data, size);
     Bind_Helper *context = &context_actual;
+    
+    // TODO(easimer): assuming ASCII encoding
+    strncpy(home_path, getenv("HOME"), 1024);
+    snprintf(proj_path, 1024, "%s/projects/", home_path);
+    
+    printf("4coder_easimer\nHome directory: %s\nProjects directory: %s\n", home_path, proj_path);
     
     set_start_hook(context, easi_start);
     set_command_caller(context, default_command_caller);
