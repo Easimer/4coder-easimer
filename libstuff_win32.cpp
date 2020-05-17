@@ -1,0 +1,10 @@
+#ifndef CPP_4CODER_EASIMER_LIBSTUFF_IMPL
+#define CPP_4CODER_EASIMER_LIBSTUFF_IMPL
+
+#ifndef CPP_4CODER_EASIMER_LIBSTUFF
+#error "Please don't include implementations directly."
+#endif /* CPP_4CODER_EASIMER_LIBSTUFF */
+
+
+
+#endif /* CPP_4CODER_EASIMER_LIBSTUFF_IMPL */
